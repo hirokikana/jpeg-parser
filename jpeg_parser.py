@@ -8,7 +8,7 @@ class Parser():
 
     def is_jpeg(self):
         self.fd.seek(0)
-        if self.fd.read(2) == '\xff\xd8':
+        if self.fd.read(2) == b'\xff\xd8':
             return True
         else:
             return False
@@ -28,32 +28,32 @@ class Parser():
         return ''
 
     def __get_segment_length(self, length_binary):
-        return int(''.join(['%x' % ord(x) for x in length_binary]), 16) - 2 
+        return int.from_bytes(length_binary, 'big') - 2
     
     def __get_marker_name(self, marker_binary):
         marker_table = {
-            '\xff\xe0': 'APP0',
-            '\xff\xe1': 'APP1',
-            '\xff\xe2': 'APP2',
-            '\xff\xe3': 'APP3',
-            '\xff\xe4': 'APP4',
-            '\xff\xe5': 'APP5',
-            '\xff\xe6': 'APP6',
-            '\xff\xe7': 'APP7',
-            '\xff\xe8': 'APP8',
-            '\xff\xe9': 'APP9',
-            '\xff\xea': 'APP10',
-            '\xff\xeb': 'APP11',
-            '\xff\xec': 'APP12',
-            '\xff\xed': 'APP13',
-            '\xff\xee': 'APP14',
-            '\xff\xef': 'APP15',
-            '\xff\xdb': 'DQT',
-            '\xff\xc0': 'SOF0',
-            '\xff\xc4': 'DHT',
-            '\xff\xda': 'SOS',
-            '\xff\xfe': 'COM',
-            '\xff\xc2': 'SOF2',
+            b'\xff\xe0': 'APP0',
+            b'\xff\xe1': 'APP1',
+            b'\xff\xe2': 'APP2',
+            b'\xff\xe3': 'APP3',
+            b'\xff\xe4': 'APP4',
+            b'\xff\xe5': 'APP5',
+            b'\xff\xe6': 'APP6',
+            b'\xff\xe7': 'APP7',
+            b'\xff\xe8': 'APP8',
+            b'\xff\xe9': 'APP9',
+            b'\xff\xea': 'APP10',
+            b'\xff\xeb': 'APP11',
+            b'\xff\xec': 'APP12',
+            b'\xff\xed': 'APP13',
+            b'\xff\xee': 'APP14',
+            b'\xff\xef': 'APP15',
+            b'\xff\xdb': 'DQT',
+            b'\xff\xc0': 'SOF0',
+            b'\xff\xc4': 'DHT',
+            b'\xff\xda': 'SOS',
+            b'\xff\xfe': 'COM',
+            b'\xff\xc2': 'SOF2',
         }
         if marker_binary in marker_table.keys():
             return marker_table[marker_binary]
@@ -85,18 +85,18 @@ if __name__ == '__main__':
             #print('semgment_body: %s' % result['body'])
             print('-----------------------------------')
         else:
-            image = ''
+            image = b''
             byte_data = fd.read(1)
             while (True):
                 image += byte_data
                 byte_data = fd.read(1)
-                if byte_data == '\xff':
+                if byte_data == b'\xff':
                     byte_data = fd.read(1)
-                    if byte_data == '\xd9':
+                    if byte_data == b'\xd9':
                         break
                     else:
                         image += byte_data
-                
+            print('image length: %s' % len(image))
             break
         
     fd.close()

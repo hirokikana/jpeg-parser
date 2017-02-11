@@ -2,6 +2,33 @@
 #-*- coding:utf-8 -*-
 import sys 
 
+class ExifParser():
+    def __init__(self, data):
+        self.data = data
+        exif_spec = result['body'][0:6]
+        exif_body = result['body'][6:]
+        byte_order = exif_body[0:2]
+        aa = exif_body[2:4]
+        self.exif_body = exif_body
+
+    def parse(self):
+        exif_body = self.exif_body
+        ifd_offset = int.from_bytes(exif_body[4:8], 'big')
+        field_count = int.from_bytes(exif_body[ifd_offset:ifd_offset+2],'big')
+        field_start = ifd_offset+2
+        for i in range(field_count):
+            start = field_start + i * 12
+            field_data = exif_body[start:start+12]
+            field_tag = field_data[0:2]
+            field_type = field_data[2:4]
+            field_count = int.from_bytes(field_data[4:8],'big')
+            field_offset = field_data[8:12]
+            data = exif_body[int.from_bytes(field_offset,'big'):int.from_bytes(field_offset,'big')+field_count * type_size[int.from_bytes(field_type,'big') - 1]]
+            print('tag: %s / type: %s / data %s' % (binascii.hexlify(field_tag), binascii.hexlify(field_type), data))
+
+        
+
+
 class Parser():
     def __init__(self, fd):
         self.fd = fd
@@ -59,7 +86,6 @@ class Parser():
             return marker_table[marker_binary]
         else:
             print(marker_binary)
-            import pdb;pdb.set_trace()
             return ''
         
     
@@ -77,9 +103,37 @@ if __name__ == '__main__':
         fd.close()
         sys.exit(1)
 
+
+    tag_mapping = {
+    }
+    type_size = [1,1,2,4,8,1,1,2,4,8,4,8]
+    import binascii
+    
     while(True):
         result = parser.get_next_segment()
         if result != '':
+            if result['name'] == 'APP1':
+                exif_parser = ExifParser(result['body'])
+                exif_parser.parse()
+
+
+                
+                exif_spec = result['body'][0:6]
+                exif_body = result['body'][6:]
+                byte_order = exif_body[0:2]
+                aa = exif_body[2:4]
+                ifd_offset = int.from_bytes(exif_body[4:8], 'big')
+                field_count = int.from_bytes(exif_body[ifd_offset:ifd_offset+2],'big')
+                field_start = ifd_offset+2
+                for i in range(field_count):
+                    start = field_start + i * 12
+                    field_data = exif_body[start:start+12]
+                    field_tag = field_data[0:2]
+                    field_type = field_data[2:4]
+                    field_count = int.from_bytes(field_data[4:8],'big')
+                    field_offset = field_data[8:12]
+                    data = exif_body[int.from_bytes(field_offset,'big'):int.from_bytes(field_offset,'big')+field_count * type_size[int.from_bytes(field_type,'big') - 1]]
+                    print('tag: %s / type: %s / data %s' % (binascii.hexlify(field_tag), binascii.hexlify(field_type), data))
             print('semgment_name: %s' % result['name'])
             print('semgment_body_length: %s' % result['length'])
             #print('semgment_body: %s' % result['body'])

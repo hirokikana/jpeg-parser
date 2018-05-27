@@ -1,12 +1,14 @@
 #!/bin/env python
 # -*- coding:utf-8 -*-
 
+from __future__ import print_function
 import struct
 import sys
 import binascii
 import StringIO
 
 def analyze_header(header, body):
+    bodyIo = StringIO.StringIO(body)
     if header == "\xff\xc0":
         # SOF0
         height = struct.unpack('>h',body[1:3])[0]
@@ -15,7 +17,6 @@ def analyze_header(header, body):
         print("\timage width: %s" % width)
 
     if header == "\xff\xe0":
-        bodyIo = StringIO.StringIO(body)
         format = bodyIo.read(5)
         major = binascii.hexlify(bodyIo.read(1))
         minor = binascii.hexlify(bodyIo.read(1))
@@ -27,7 +28,19 @@ def analyze_header(header, body):
 
         print("\tformat: %s" % format)
         print("\tversion: v%s.%s" % (major, minor))
-        
+
+    if header == "\xff\xdb":
+        numOfTable = len(body) / 65
+        for i in range(0,numOfTable):
+            bodyIo.read(1)
+            table = bodyIo.read(64)
+            print("\tTable #%d" % i, end="") 
+            for i in range(0,64):
+                if (i % 8 == 0):
+                    print()
+                    print("\t", end="")
+                print(binascii.hexlify(table[i]), end="")
+            print("\n")
 
 def convert_to_headername(header):
     header_name = {

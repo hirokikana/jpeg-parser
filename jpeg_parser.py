@@ -4,6 +4,7 @@
 import struct
 import sys
 import binascii
+import StringIO
 
 def analyze_header(header, body):
     if header == "\xff\xc0":
@@ -12,6 +13,21 @@ def analyze_header(header, body):
         width = struct.unpack('>h',body[3:5])[0]
         print("\timage height: %s" % height)
         print("\timage width: %s" % width)
+
+    if header == "\xff\xe0":
+        bodyIo = StringIO.StringIO(body)
+        format = bodyIo.read(5)
+        major = binascii.hexlify(bodyIo.read(1))
+        minor = binascii.hexlify(bodyIo.read(1))
+        density = bodyIo.read(1)
+        x = bodyIo.read(2)
+        y = bodyIo.read(2)
+        thumbnailX = bodyIo.read(2)
+        thumbnailY = bodyIo.read(2)
+
+        print("\tformat: %s" % format)
+        print("\tversion: v%s.%s" % (major, minor))
+        
 
 def convert_to_headername(header):
     header_name = {

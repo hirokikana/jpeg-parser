@@ -29,6 +29,7 @@ def analyze_header(header, body):
         print("\tformat: %s" % format)
         print("\tversion: v%s.%s" % (major, minor))
 
+    # DQT
     if header == "\xff\xdb":
         numOfTable = len(body) / 65
         for i in range(0,numOfTable):
@@ -41,6 +42,15 @@ def analyze_header(header, body):
                     print("\t", end="")
                 print(binascii.hexlify(table[i]), end="")
             print("\n")
+
+    # DHT
+    if header == "\xff\xc4":
+        classAndIndex =  bodyIo.read(1)
+        tableIndex = struct.unpack('b', classAndIndex)[0] & 0b0001111
+        tableClass = "AC" if (struct.unpack('b', classAndIndex)[0] & 0b11110000) >> 4 == 1 else "DC"
+
+        print("\tTable class: %s" % tableClass)
+        print("\tTable index: %s" % tableIndex)
 
 def convert_to_headername(header):
     header_name = {
